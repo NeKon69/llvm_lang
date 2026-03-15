@@ -1,4 +1,5 @@
 #include <cassert>
+
 #include "fwd.h"
 
 auto main() -> int {
