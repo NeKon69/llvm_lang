@@ -1,7 +1,8 @@
-#include <cassert>
+#include <gtest/gtest.h>
 
 #include "lexer.h"
 
-auto main() -> int {
-    assert(klds::lexer::token::TOK_EOF != 0 && "Testing test");
+TEST(SmokeTest, TokensHaveExpectedValues) {
+    EXPECT_NE(klds::lexer::TOK_EOF, 0);
+    EXPECT_EQ(klds::lexer::TOK_UNK, 0);
 }

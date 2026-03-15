@@ -1,8 +1,9 @@
--- nvim-tree state | last updated: 2026-03-15 19:41:37
+-- nvim-tree state | last updated: 2026-03-15 23:45:37
 return {
-  timestamp = 1773592897,
+  timestamp = 1773607537,
   open_dirs = {
-    "include",
+    "src",
     "test",
+    "test/lexer",
   },
 }
