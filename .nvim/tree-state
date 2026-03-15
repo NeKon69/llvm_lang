@@ -1,6 +1,6 @@
--- nvim-tree state | last updated: 2026-03-15 19:38:28
+-- nvim-tree state | last updated: 2026-03-15 19:41:37
 return {
-  timestamp = 1773592708,
+  timestamp = 1773592897,
   open_dirs = {
     "include",
     "test",

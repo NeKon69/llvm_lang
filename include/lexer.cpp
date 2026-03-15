@@ -6,7 +6,6 @@
 #include <string>
 
 #include "fwd.h"
-#include "llvm/
 
 namespace klds {
 double lexer::tok_data::get_double() {
@@ -105,6 +104,9 @@ lexer::tok_data lexer::get_token() {
         complete_identifier(identifier, is_digit_or_dot);
 
         return tok_data {TOK_NUM, std::stod(identifier)};
+    }
+
+    if (m_last_char == '#') {
     }
 
     assert(

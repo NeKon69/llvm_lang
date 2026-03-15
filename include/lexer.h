@@ -71,7 +71,8 @@ private:
     // templated is an anti pattern, yet, here i am
     // Func should accept `int, Ts..., std::locale`
     template<typename Func, typename... Ts>
-    void complete_identifier(std::string& identifier, Func&& cond, Ts&&... args);
+    void complete_identifier(std::string& identifier, Func&& cond,
+                             Ts&&... args);
 };
 
 } // namespace klds
