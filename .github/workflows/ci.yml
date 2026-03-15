@@ -1,0 +1,170 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            build_dir: build_Debug
+            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
+            llvm_cmake_dir: $(llvm-config --cmakedir)
+            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            use_ccache: true
+            use_package_cache: true
+            package_cache_path: |
+              /var/cache/apt/archives
+          - os: macos-latest
+            build_dir: build_Debug
+            llvm_install: brew update && brew install ccache llvm ninja
+            llvm_cmake_dir: $(brew --prefix llvm)/lib/cmake/llvm
+            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            use_ccache: true
+            use_package_cache: true
+            package_cache_path: ~/Library/Caches/Homebrew
+          - os: macos-15-intel
+            build_dir: build_Debug
+            llvm_install: brew update && brew install ccache llvm ninja
+            llvm_cmake_dir: $(brew --prefix llvm)/lib/cmake/llvm
+            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            use_ccache: true
+            use_package_cache: true
+            package_cache_path: ~/Library/Caches/Homebrew
+          - os: ubuntu-24.04-arm
+            build_dir: build_Debug
+            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
+            llvm_cmake_dir: $(llvm-config --cmakedir)
+            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            use_ccache: true
+            use_package_cache: true
+            package_cache_path: |
+              /var/cache/apt/archives
+          - os: windows-latest
+            build_dir: build_Debug
+            llvm_install: choco install -y llvm ninja
+            llvm_cmake_dir: /c/Program Files/LLVM/lib/cmake/llvm
+            extra_cmake_args: ''
+            use_ccache: false
+            use_package_cache: true
+            package_cache_path: |
+              C:\ProgramData\chocolatey\cache
+              C:\ProgramData\chocolatey\lib
+
+    runs-on: ${{ matrix.os }}
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 500M
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Restore package cache
+        if: matrix.use_package_cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.package_cache_path }}
+          key: ${{ runner.os }}-packages-${{ github.job }}-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-packages-${{ github.job }}-
+
+      - name: Install toolchain
+        shell: bash
+        run: ${{ matrix.llvm_install }}
+
+      - name: Restore ccache
+        if: matrix.use_ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ runner.os }}-ccache-${{ github.job }}-${{ hashFiles('CMakeLists.txt', '.clang-tidy', '.clang-format', 'src/**/*.cpp', 'include/**/*.h', 'test/**/*.cpp') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ github.job }}-
+
+      - name: Add LLVM to PATH on macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Add LLVM to PATH on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "/c/Program Files/LLVM/bin" >> "$GITHUB_PATH"
+
+      - name: Show tool versions
+        shell: bash
+        run: |
+          cmake --version
+          clang --version
+          clang-format --version
+          clang-tidy --version
+          llvm-config --version
+          if command -v ccache >/dev/null 2>&1; then
+            ccache --version
+          fi
+
+      - name: Configure
+        shell: bash
+        run: >-
+          cmake -S . -B "${{ matrix.build_dir }}" -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DLLVM_DIR="${{ matrix.llvm_cmake_dir }}"
+          -DLLVM_LANG_ENABLE_CLANG_TIDY=ON
+          ${{ matrix.extra_cmake_args }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build "${{ matrix.build_dir }}"
+
+      - name: Test
+        shell: bash
+        run: ctest --test-dir "${{ matrix.build_dir }}" --output-on-failure --no-tests=ignore --progress --verbose
+
+      - name: Show ccache stats
+        if: always() && matrix.use_ccache
+        shell: bash
+        run: ccache --show-stats
+
+  format-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Restore apt cache
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ubuntu-format-apt-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: |
+            ubuntu-format-apt-
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check formatting
+        shell: bash
+        run: |
+          files=$(git ls-files '*.cpp' '*.h' '*.hpp' '*.cc' '*.cxx')
+          if [ -n "$files" ]; then
+            clang-format --dry-run --Werror $files
+          fi
