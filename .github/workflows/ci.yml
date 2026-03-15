@@ -5,9 +5,6 @@ env:
 
 on:
   push:
-    branches:
-      - main
-      - master
   pull_request:
 
 concurrency:
@@ -27,9 +24,7 @@ jobs:
             llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
             extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             use_ccache: true
-            use_package_cache: true
-            package_cache_path: |
-              /var/cache/apt/archives
+            use_package_cache: false
             enable_llvm: true
           - os: macos-latest
             machine_name: macOS arm64
@@ -55,9 +50,7 @@ jobs:
             llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
             extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             use_ccache: true
-            use_package_cache: true
-            package_cache_path: |
-              /var/cache/apt/archives
+            use_package_cache: false
             enable_llvm: true
           - os: windows-latest
             machine_name: windows x64
@@ -175,7 +168,8 @@ jobs:
         shell: bash
         run: ccache --show-stats
 
-  format-check:
+  lint-and-format-check:
+    name: Lint and Format Check
     runs-on: ubuntu-latest
 
     steps:
@@ -184,18 +178,26 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Restore apt cache
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: ubuntu-format-apt-${{ hashFiles('.github/workflows/ci.yml') }}
-          restore-keys: |
-            ubuntu-format-apt-
-
-      - name: Install clang-format
+      - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format
+          sudo apt-get install -y clang clang-format clang-tidy cmake llvm-dev ninja-build
+
+      - name: Resolve LLVM CMake path
+        shell: bash
+        run: echo "LLVM_CMAKE_DIR=$(llvm-config --cmakedir)" >> "$GITHUB_ENV"
+
+      - name: Configure
+        shell: bash
+        run: |
+          cmake -S . -B build_Debug -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DLLVM_DIR="${LLVM_CMAKE_DIR}" \
+            -DLLVM_LANG_ENABLE_CLANG_TIDY=ON
+
+      - name: Lint
+        shell: bash
+        run: cmake --build build_Debug
 
       - name: Check formatting
         shell: bash

@@ -1,12 +1,8 @@
--- nvim-tree state | last updated: 2026-03-15 16:09:34
+-- nvim-tree state | last updated: 2026-03-15 19:38:28
 return {
-  timestamp = 1773580174,
+  timestamp = 1773592708,
   open_dirs = {
-    ".github",
-    ".nvim",
-    "examples",
     "include",
-    "src",
     "test",
   },
 }

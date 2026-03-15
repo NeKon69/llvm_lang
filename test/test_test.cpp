@@ -1,7 +1,7 @@
 #include <cassert>
 
-#include "fwd.h"
+#include "lexer.h"
 
 auto main() -> int {
-    assert(klds::token::TOK_DEF != 0 && "Testing test");
+    assert(klds::lexer::token::TOK_EOF != 0 && "Testing test");
 }
