@@ -29,7 +29,7 @@ std::string keyword_name(const ::testing::TestParamInfo<keyword_case>& info) {
 
 } // namespace
 
-TEST_P(LexerKeywordTest, LexesKeywordAndNumber) {
+TEST_P(LexerKeywordTest, KeywordBeforeFractionalNumberProducesBothTokens) {
     const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " 12.345");
     klds::lexer        lex(input);
@@ -109,7 +109,8 @@ TEST_P(LexerKeywordTest, KeywordThenNumberBeforeIdentifierKeepsBothTokens) {
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
-TEST_P(LexerKeywordTest, KeywordThenMalformedMultiDotNumberUsesStodPrefix) {
+TEST_P(LexerKeywordTest,
+       KeywordThenMalformedMultiDotNumberSplitsIntoTwoNumberTokens) {
     const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " 1.23.45");
     klds::lexer        lex(input);
@@ -127,15 +128,16 @@ TEST_P(LexerKeywordTest, KeywordThenMalformedMultiDotNumberUsesStodPrefix) {
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
-TEST_P(LexerKeywordTest, KeywordThenDotOnlyNumberThrows) {
+TEST_P(LexerKeywordTest, KeywordThenDotOnlyInputProducesUnknownToken) {
     const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " .");
     klds::lexer        lex(input);
 
     auto keyword_tok = lex.get_token();
+    auto unk         = lex.get_token();
 
     EXPECT_EQ(keyword_tok.m_tok, keyword.token);
-    EXPECT_THROW(static_cast<void>(lex.get_token()), std::invalid_argument);
+    EXPECT_EQ(unk.m_tok, klds::lexer::TOK_UNK);
 }
 
 TEST_P(LexerKeywordTest,

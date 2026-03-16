@@ -46,7 +46,7 @@ TEST(LexerDoubleTest, LeadingDotNumberIsAccepted) {
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
-TEST(LexerDoubleTest, MalformedMultiDotNumberUsesStodPrefix) {
+TEST(LexerDoubleTest, MalformedMultiDotNumberSplitsIntoTwoNumberTokens) {
     std::istringstream input("1.23.45");
     klds::lexer        lex(input);
 
@@ -61,11 +61,13 @@ TEST(LexerDoubleTest, MalformedMultiDotNumberUsesStodPrefix) {
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
-TEST(LexerDoubleTest, DotOnlyNumberThrows) {
+TEST(LexerDoubleTest, DotOnlyInputProducesUnknownToken) {
     std::istringstream input(".");
     klds::lexer        lex(input);
 
-    EXPECT_THROW(static_cast<void>(lex.get_token()), std::invalid_argument);
+    auto unk = lex.get_token();
+
+    EXPECT_EQ(unk.m_tok, klds::lexer::TOK_UNK);
 }
 
 TEST(LexerDoubleTest, NumberBeforeIdentifierKeepsBothTokens) {

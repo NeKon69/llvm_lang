@@ -121,7 +121,7 @@ TEST(LexerUnknownTest, UnknownTokenAfterWhitespaceIsStillReported) {
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
-TEST(LexerUnknownTest, UnknownTokenDoesNotBreakWindowsStyleCommentRecovery) {
+TEST(LexerUnknownTest, UnknownTokenBeforeCommentStillLexesFollowingIdentifier) {
     std::istringstream input(R"(@# comment
 next)");
     klds::lexer        lex(input);

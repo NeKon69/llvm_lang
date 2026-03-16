@@ -130,7 +130,12 @@ lexer::tok_data lexer::get_token() {
         complete_identifier(identifier, is_digit_or_dot);
 
         m_tokens.push_back(TOK_NUM);
-        double value                     = std::stod(identifier);
+        double value;
+        try {
+            value = std::stod(identifier);
+        } catch (const std::invalid_argument& e) {
+            goto err;
+        }
         m_token_map[m_tokens.size() - 1] = value;
         return construct_token();
     }
@@ -149,6 +154,7 @@ lexer::tok_data lexer::get_token() {
         m_tokens.push_back(TOK_EOF);
         return construct_token();
     }
+err:
     // If this is reached we are screwed
     std::print(
         std::cerr,
