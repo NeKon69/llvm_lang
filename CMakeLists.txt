@@ -49,6 +49,10 @@ target_compile_features(llvm_lang PUBLIC cxx_std_20)
 target_compile_options(llvm_lang PRIVATE ${LLVM_LANG_WARNING_FLAGS})
 target_include_directories(llvm_lang PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(llvm_lang PUBLIC stdc++exp)
+endif()
+
 if(LLVM_LANG_USE_MAGIC_ENUM)
     set(MAGIC_ENUM_OPT_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(MAGIC_ENUM_OPT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
