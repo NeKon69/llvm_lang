@@ -30,7 +30,7 @@ std::string keyword_name(const ::testing::TestParamInfo<keyword_case>& info) {
 } // namespace
 
 TEST_P(LexerKeywordTest, LexesKeywordAndNumber) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " 12.345");
     klds::lexer        lex(input);
 
@@ -44,7 +44,7 @@ TEST_P(LexerKeywordTest, LexesKeywordAndNumber) {
 }
 
 TEST_P(LexerKeywordTest, KeywordStopsBeforeIdentifierSuffix) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + "42");
     klds::lexer        lex(input);
 
@@ -58,7 +58,7 @@ TEST_P(LexerKeywordTest, KeywordStopsBeforeIdentifierSuffix) {
 }
 
 TEST_P(LexerKeywordTest, KeywordThenIntegerEndsAtEof) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " 42");
     klds::lexer        lex(input);
 
@@ -74,7 +74,7 @@ TEST_P(LexerKeywordTest, KeywordThenIntegerEndsAtEof) {
 }
 
 TEST_P(LexerKeywordTest, KeywordThenLeadingDotNumberIsAccepted) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " .125");
     klds::lexer        lex(input);
 
@@ -90,7 +90,7 @@ TEST_P(LexerKeywordTest, KeywordThenLeadingDotNumberIsAccepted) {
 }
 
 TEST_P(LexerKeywordTest, KeywordThenNumberBeforeIdentifierKeepsBothTokens) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " 12abc");
     klds::lexer        lex(input);
 
@@ -110,7 +110,7 @@ TEST_P(LexerKeywordTest, KeywordThenNumberBeforeIdentifierKeepsBothTokens) {
 }
 
 TEST_P(LexerKeywordTest, KeywordThenMalformedMultiDotNumberUsesStodPrefix) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " 1.23.45");
     klds::lexer        lex(input);
 
@@ -128,7 +128,7 @@ TEST_P(LexerKeywordTest, KeywordThenMalformedMultiDotNumberUsesStodPrefix) {
 }
 
 TEST_P(LexerKeywordTest, KeywordThenDotOnlyNumberThrows) {
-    const auto& keyword = GetParam();
+    const auto&        keyword = GetParam();
     std::istringstream input(std::string(keyword.text) + " .");
     klds::lexer        lex(input);
 
@@ -138,9 +138,11 @@ TEST_P(LexerKeywordTest, KeywordThenDotOnlyNumberThrows) {
     EXPECT_THROW(static_cast<void>(lex.get_token()), std::invalid_argument);
 }
 
-TEST_P(LexerKeywordTest, KeywordThenNumberBeforeCommentKeepsCommentPathReachable) {
-    const auto& keyword = GetParam();
-    std::istringstream input(std::string(keyword.text) + " 12.5# trailing comment");
+TEST_P(LexerKeywordTest,
+       KeywordThenNumberBeforeCommentKeepsCommentPathReachable) {
+    const auto&        keyword = GetParam();
+    std::istringstream input(std::string(keyword.text) +
+                             " 12.5# trailing comment");
     klds::lexer        lex(input);
 
     auto keyword_tok = lex.get_token();
@@ -157,10 +159,10 @@ TEST_P(LexerKeywordTest, KeywordThenNumberBeforeCommentKeepsCommentPathReachable
 }
 
 TEST_P(LexerKeywordTest, KeywordThenNumberThenNewlineContinuesLexing) {
-    const auto& keyword = GetParam();
-    std::istringstream input(
-        std::string(keyword.text) + " 7\n" + keyword.text + " 8");
-    klds::lexer lex(input);
+    const auto&        keyword = GetParam();
+    std::istringstream input(std::string(keyword.text) + " 7\n" + keyword.text +
+                             " 8");
+    klds::lexer        lex(input);
 
     auto first_keyword  = lex.get_token();
     auto first_number   = lex.get_token();
