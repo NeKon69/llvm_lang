@@ -20,8 +20,8 @@ jobs:
           - os: ubuntu-latest
             machine_name: linux x64
             build_dir: build_Debug
-            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
-            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build gcc-14 g++-14
+            extra_cmake_args: -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             use_ccache: true
             use_package_cache: false
             enable_llvm: true
@@ -46,8 +46,8 @@ jobs:
           - os: ubuntu-24.04-arm
             machine_name: linux arm64
             build_dir: build_Debug
-            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
-            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build gcc-14 g++-14
+            extra_cmake_args: -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             use_ccache: true
             use_package_cache: false
             enable_llvm: true
@@ -182,7 +182,7 @@ jobs:
       - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang clang-format clang-tidy cmake llvm-dev ninja-build
+          sudo apt-get install -y clang clang-format clang-tidy cmake llvm-dev ninja-build gcc-14 g++-14
 
       - name: Resolve LLVM CMake path
         shell: bash
@@ -193,6 +193,8 @@ jobs:
         run: |
           cmake -S . -B build_Debug -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=gcc-14 \
+            -DCMAKE_CXX_COMPILER=g++-14 \
             -DLLVM_DIR="${LLVM_CMAKE_DIR}" \
             -DLLVM_LANG_ENABLE_CLANG_TIDY=ON
 
