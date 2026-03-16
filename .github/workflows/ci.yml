@@ -4,11 +4,10 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
+  pull_request:
   push:
     branches:
       - main
-      - master
-  pull_request:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -24,12 +23,10 @@ jobs:
           - os: ubuntu-latest
             machine_name: linux x64
             build_dir: build_Debug
-            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
-            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build gcc-14 g++-14
+            extra_cmake_args: -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             use_ccache: true
-            use_package_cache: true
-            package_cache_path: |
-              /var/cache/apt/archives
+            use_package_cache: false
             enable_llvm: true
           - os: macos-latest
             machine_name: macOS arm64
@@ -52,12 +49,10 @@ jobs:
           - os: ubuntu-24.04-arm
             machine_name: linux arm64
             build_dir: build_Debug
-            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build
-            extra_cmake_args: -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            llvm_install: sudo apt-get update && sudo apt-get install -y ccache clang clang-format clang-tidy cmake llvm-dev ninja-build gcc-14 g++-14
+            extra_cmake_args: -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             use_ccache: true
-            use_package_cache: true
-            package_cache_path: |
-              /var/cache/apt/archives
+            use_package_cache: false
             enable_llvm: true
           - os: windows-latest
             machine_name: windows x64
@@ -81,6 +76,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          submodules: recursive
 
       - name: Restore package cache
         if: matrix.use_package_cache
@@ -175,7 +171,8 @@ jobs:
         shell: bash
         run: ccache --show-stats
 
-  format-check:
+  lint-and-format-check:
+    name: Lint and Format Check
     runs-on: ubuntu-latest
 
     steps:
@@ -183,19 +180,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          submodules: recursive
 
-      - name: Restore apt cache
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: ubuntu-format-apt-${{ hashFiles('.github/workflows/ci.yml') }}
-          restore-keys: |
-            ubuntu-format-apt-
-
-      - name: Install clang-format
+      - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format
+          sudo apt-get install -y clang clang-format clang-tidy cmake llvm-dev ninja-build gcc-14 g++-14
+
+      - name: Resolve LLVM CMake path
+        shell: bash
+        run: echo "LLVM_CMAKE_DIR=$(llvm-config --cmakedir)" >> "$GITHUB_ENV"
+
+      - name: Configure
+        shell: bash
+        run: |
+          cmake -S . -B build_Debug -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=gcc-14 \
+            -DCMAKE_CXX_COMPILER=g++-14 \
+            -DLLVM_DIR="${LLVM_CMAKE_DIR}" \
+            -DLLVM_LANG_ENABLE_CLANG_TIDY=ON
+
+      - name: Lint
+        shell: bash
+        run: cmake --build build_Debug
 
       - name: Check formatting
         shell: bash

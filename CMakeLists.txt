@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(LLVM_Lang VERSION 0.1.0 LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -20,6 +20,7 @@ endif()
 option(LLVM_LANG_ENABLE_LLVM "Enable LLVM package discovery" ON)
 option(LLVM_LANG_ENABLE_CLANG_TIDY "Enable clang-tidy during compilation when available" ON)
 option(LLVM_LANG_BUILD_TESTS "Enable test configuration" ON)
+option(LLVM_LANG_USE_MAGIC_ENUM "Enable bundled magic_enum support" ON)
 
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not supported. Use cmake -S . -B build instead.")
@@ -48,8 +49,24 @@ target_compile_features(llvm_lang PUBLIC cxx_std_20)
 target_compile_options(llvm_lang PRIVATE ${LLVM_LANG_WARNING_FLAGS})
 target_include_directories(llvm_lang PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(llvm_lang PUBLIC stdc++exp)
+endif()
+
+if(LLVM_LANG_USE_MAGIC_ENUM)
+    set(MAGIC_ENUM_OPT_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(MAGIC_ENUM_OPT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(MAGIC_ENUM_OPT_INSTALL OFF CACHE BOOL "" FORCE)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/magic_enum)
+    target_link_libraries(llvm_lang PUBLIC magic_enum::magic_enum)
+endif()
+
 file(GLOB_RECURSE LLVM_LANG_SOURCE_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/*.cpp)
+list(REMOVE_ITEM LLVM_LANG_SOURCE_FILES ${PROJECT_SOURCE_DIR}/src/main.cpp)
 target_sources(llvm_lang PRIVATE ${LLVM_LANG_SOURCE_FILES})
+
+add_executable(llvm_lang_bin ${PROJECT_SOURCE_DIR}/src/main.cpp)
+target_link_libraries(llvm_lang_bin PRIVATE llvm_lang)
 
 if(LLVM_LANG_ENABLE_LLVM)
     set(LLVM_LANG_LLVM_DIR_HINTS
