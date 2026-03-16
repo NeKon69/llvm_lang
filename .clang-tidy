@@ -11,6 +11,7 @@ Checks: >
   modernize-make-unique,
   modernize-pass-by-value,
   -bugprone-easily-swappable-parameters,
+  -portability-template-virtual-member-function,
   -modernize-use-trailing-return-type
 WarningsAsErrors: >
   bugprone-*,
@@ -22,6 +23,7 @@ WarningsAsErrors: >
   modernize-loop-convert,
   modernize-make-shared,
   modernize-make-unique,
-  modernize-pass-by-value
+  modernize-pass-by-value,
+  -portability-template-virtual-member-function
 HeaderFilterRegex: '^(include|src|test)/'
 FormatStyle: file

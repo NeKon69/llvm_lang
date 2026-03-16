@@ -5,6 +5,7 @@
 #include <iostream>
 #include <magic_enum/magic_enum.hpp>
 #include <optional>
+#include <print>
 #include <string>
 
 #include "fwd.h"
