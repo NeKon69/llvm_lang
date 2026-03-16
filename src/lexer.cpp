@@ -21,7 +21,7 @@ double lexer::tok_data::get_double() {
 }
 
 std::string_view lexer::tok_data::get_string() {
-    if (m_tok == TOK_DEF) {
+    if (m_tok == TOK_IDENT) {
         if (m_val) {
             return std::get<std::string_view>(*m_val);
         }
