@@ -21,7 +21,6 @@ TEST(LexerUnknownTest, UnknownTokenDoesNotBlockNextToken) {
     EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "abc");
 }
 
-
 TEST(LexerUnknownTest, UnknownTokenWithoutFollowerStillReachesEof) {
     std::istringstream input("@");
     klds::lexer        lex(input);
@@ -63,7 +62,9 @@ TEST(LexerUnknownTest, UnknownTokenDoesNotBlockNumberParsing) {
     EXPECT_EQ(unknown.m_tok, klds::lexer::TOK_UNK);
     EXPECT_EQ(number.m_tok, klds::lexer::TOK_NUM);
     ASSERT_TRUE(number.m_val.has_value());
-    EXPECT_DOUBLE_EQ(std::get<double>(*number.m_val), 123.5);
+    const auto number_value =
+        number.m_val ? std::get<double>(*number.m_val) : 0.0;
+    EXPECT_DOUBLE_EQ(number_value, 123.5);
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -96,8 +97,8 @@ TEST(LexerUnknownTest, UnknownTokenDoesNotBlockCommentParsing) {
 }
 
 TEST(LexerUnknownTest, UnknownTokenBeforeNewlineStillProducesNewlineToken) {
-    std::istringstream input("@
-");
+    std::istringstream input(R"(@
+)");
     klds::lexer        lex(input);
 
     auto unknown = lex.get_token();
@@ -110,7 +111,7 @@ TEST(LexerUnknownTest, UnknownTokenBeforeNewlineStillProducesNewlineToken) {
 }
 
 TEST(LexerUnknownTest, UnknownTokenAfterWhitespaceIsStillReported) {
-    std::istringstream input("   	@");
+    std::istringstream input("   \t@");
     klds::lexer        lex(input);
 
     auto unknown = lex.get_token();
@@ -121,19 +122,26 @@ TEST(LexerUnknownTest, UnknownTokenAfterWhitespaceIsStillReported) {
 }
 
 TEST(LexerUnknownTest, UnknownTokenDoesNotBreakWindowsStyleCommentRecovery) {
-    std::istringstream input("@# commentnext");
+    std::istringstream input(R"(@# comment
+next)");
     klds::lexer        lex(input);
 
     auto unknown = lex.get_token();
     auto comment = lex.get_token();
+    auto nl      = lex.get_token();
     auto ident   = lex.get_token();
     auto eof     = lex.get_token();
 
     EXPECT_EQ(unknown.m_tok, klds::lexer::TOK_UNK);
     EXPECT_EQ(comment.m_tok, klds::lexer::TOK_COMMENT);
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
+    EXPECT_EQ(nl.m_tok, klds::lexer::TOK_NL);
     ASSERT_TRUE(ident.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "next");
+
+    const auto ident_value = ident.m_val
+                                 ? std::get<std::string_view>(*ident.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(ident_value, "next");
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -148,10 +156,11 @@ TEST(LexerUnknownTest, UnknownTokenCanAppearBetweenValidTokens) {
 
     EXPECT_EQ(first.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(first.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*first.m_val), "abc");
+    const auto first_value = first.m_val
+                                 ? std::get<std::string_view>(*first.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(first_value, "abc");
     EXPECT_EQ(unknown.m_tok, klds::lexer::TOK_UNK);
-    EXPECT_EQ(second.m_tok, klds::lexer::TOK_IDENT);
-    ASSERT_TRUE(second.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*second.m_val), "def");
+    EXPECT_EQ(second.m_tok, klds::lexer::TOK_DEF);
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }

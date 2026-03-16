@@ -51,11 +51,13 @@ TEST(LexerDoubleTest, MalformedMultiDotNumberUsesStodPrefix) {
     klds::lexer        lex(input);
 
     auto number = lex.get_token();
+    auto number2 = lex.get_token();
     auto eof    = lex.get_token();
 
     EXPECT_EQ(number.m_tok, klds::lexer::TOK_NUM);
     ASSERT_TRUE(number.m_val.has_value());
     EXPECT_NEAR(number.get_double(), 1.23, 1e-9);
+    EXPECT_NEAR(number2.get_double(), .45, 1e-9);
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -99,7 +101,8 @@ TEST(LexerDoubleTest, NumberBeforeCommentIsLexedFirst) {
 }
 
 TEST(LexerDoubleTest, NumberThenNewlineContinuesLexing) {
-    std::istringstream input("7\n8");
+    std::istringstream input(R"(7
+8)");
     klds::lexer        lex(input);
 
     auto first_number  = lex.get_token();

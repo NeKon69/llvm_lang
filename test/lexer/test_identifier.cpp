@@ -28,7 +28,10 @@ TEST(LexerIdentifierTest, LexesAlphanumericIdentifierPayload) {
 
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(ident.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "alpha123beta456");
+    const auto ident_value = ident.m_val
+                                 ? std::get<std::string_view>(*ident.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(ident_value, "alpha123beta456");
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -41,7 +44,10 @@ TEST(LexerIdentifierTest, LeadingWhitespaceBeforeIdentifierIsIgnored) {
 
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(ident.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "spaced");
+    const auto ident_value = ident.m_val
+                                 ? std::get<std::string_view>(*ident.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(ident_value, "spaced");
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -68,7 +74,10 @@ TEST(LexerIdentifierTest, IdentifierStopsBeforeUnknownToken) {
 
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(ident.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "name");
+    const auto ident_value = ident.m_val
+                                 ? std::get<std::string_view>(*ident.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(ident_value, "name");
     EXPECT_EQ(unknown.m_tok, klds::lexer::TOK_UNK);
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
@@ -83,13 +92,17 @@ TEST(LexerIdentifierTest, IdentifierStopsBeforeCommentAndCommentIsLexedNext) {
 
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(ident.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "name");
+    const auto ident_value = ident.m_val
+                                 ? std::get<std::string_view>(*ident.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(ident_value, "name");
     EXPECT_EQ(comment.m_tok, klds::lexer::TOK_COMMENT);
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
 TEST(LexerIdentifierTest, IdentifierFollowedByNewlineProducesNewlineToken) {
-    std::istringstream input("name\nnext");
+    std::istringstream input(R"(name
+next)");
     klds::lexer        lex(input);
 
     auto first = lex.get_token();
@@ -99,11 +112,16 @@ TEST(LexerIdentifierTest, IdentifierFollowedByNewlineProducesNewlineToken) {
 
     EXPECT_EQ(first.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(first.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*first.m_val), "name");
+    const auto first_value = first.m_val
+                                 ? std::get<std::string_view>(*first.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(first_value, "name");
     EXPECT_EQ(nl.m_tok, klds::lexer::TOK_NL);
     EXPECT_EQ(next.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(next.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*next.m_val), "next");
+    const auto next_value = next.m_val ? std::get<std::string_view>(*next.m_val)
+                                       : std::string_view {};
+    EXPECT_EQ(next_value, "next");
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -142,10 +160,16 @@ TEST(LexerIdentifierTest, KeywordPrefixesThatContinueWithAlnumStayIdentifiers) {
 
     EXPECT_EQ(first.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(first.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*first.m_val), "definitely");
+    const auto first_value = first.m_val
+                                 ? std::get<std::string_view>(*first.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(first_value, "definitely");
     EXPECT_EQ(second.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(second.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*second.m_val), "extern1");
+    const auto second_value = second.m_val
+                                  ? std::get<std::string_view>(*second.m_val)
+                                  : std::string_view {};
+    EXPECT_EQ(second_value, "extern1");
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
@@ -159,7 +183,10 @@ TEST(LexerIdentifierTest, DigitsAfterIdentifierRemainPartOfSameToken) {
 
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(ident.m_val.has_value());
-    EXPECT_EQ(std::get<std::string_view>(*ident.m_val), "abc123");
+    const auto ident_value = ident.m_val
+                                 ? std::get<std::string_view>(*ident.m_val)
+                                 : std::string_view {};
+    EXPECT_EQ(ident_value, "abc123");
     EXPECT_EQ(number.m_tok, klds::lexer::TOK_NUM);
     EXPECT_NEAR(number.get_double(), 7.0, 1e-9);
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);

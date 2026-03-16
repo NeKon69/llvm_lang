@@ -159,10 +159,10 @@ TEST_P(LexerKeywordTest,
 }
 
 TEST_P(LexerKeywordTest, KeywordThenNumberThenNewlineContinuesLexing) {
-    const auto&        keyword = GetParam();
-    std::istringstream input(std::string(keyword.text) + " 7\n" + keyword.text +
-                             " 8");
-    klds::lexer        lex(input);
+    const auto& keyword = GetParam();
+    std::istringstream input(std::string(keyword.text) + R"( 7
+)" + keyword.text + " 8");
+    klds::lexer lex(input);
 
     auto first_keyword  = lex.get_token();
     auto first_number   = lex.get_token();

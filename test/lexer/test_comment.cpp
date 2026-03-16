@@ -50,17 +50,19 @@ TEST(LexerCommentTest, CommentFollowedByCarriageReturnSkipsReturnAndContinues) {
     EXPECT_EQ(eof.m_tok, klds::lexer::TOK_EOF);
 }
 
-TEST(LexerCommentTest, CommentFollowedByCrLfDoesNotProduceNewlineToken) {
+TEST(LexerCommentTest, CommentFollowedByCrLfProducesNewlineToken) {
     std::istringstream input(R"(# windows style comment)"
                              "\r\n"
                              R"(next)");
     klds::lexer        lex(input);
 
     auto comment = lex.get_token();
+    auto nl      = lex.get_token();
     auto ident   = lex.get_token();
     auto eof     = lex.get_token();
 
     EXPECT_EQ(comment.m_tok, klds::lexer::TOK_COMMENT);
+    EXPECT_EQ(nl.m_tok, klds::lexer::TOK_NL);
     EXPECT_EQ(ident.m_tok, klds::lexer::TOK_IDENT);
     ASSERT_TRUE(ident.m_val.has_value());
     const auto ident_value = ident.m_val

@@ -1,5 +1,5 @@
-#include <chrono>
-#include <fstream>
+#pragma once
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -98,7 +98,7 @@ private:
 
     template<typename T>
     T get_curr_token() {
-        get_token_val<T>(m_tokens.size());
+        return get_token_val<T>(m_tokens.size() - 1);
     }
 
     template<typename T>

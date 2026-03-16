@@ -73,14 +73,15 @@ lexer::tok_data lexer::construct_token() {
 }
 
 lexer::tok_data lexer::get_token() {
+    while (std::isspace(m_last_char) && m_last_char != '\n') {
+        consume();
+    }
+
     if (m_last_char == '\n') {
         m_curr_loc.new_line();
         consume();
         m_tokens.push_back(TOK_NL);
         return construct_token();
-    }
-    while (std::isspace(m_last_char)) {
-        consume();
     }
 
     std::string identifier;
