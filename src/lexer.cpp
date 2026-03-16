@@ -109,9 +109,20 @@ lexer::tok_data lexer::get_token() {
 
     if (std::isdigit(static_cast<unsigned char>(m_last_char)) ||
         m_last_char == '.') {
-        auto is_digit_or_dot = [](int chr) {
-            // FIXME: currently if you write 1.23.45 it will turn into 1.23,
-            // gotta fix that later.
+        uint64_t dot_count = 0;
+        m_last_char == '.' ? dot_count++ : dot_count;
+        auto is_digit_or_dot = [&dot_count](int chr) {
+            // I guess now doubles will be split into two separate parts, for
+            // exmaple, if we have 1.23.45 it will turn into 1.23 .45 for my
+            // future AST. dont really think its the desired behavior, but dk
+            // really how lexer will interact will all this stuff anyways
+            // Oh just got some kind of idea. i think lexer on its own shouldnt
+            // even decide whether what we see is a double or not, it should do
+            // sema later on
+
+            chr == '.' ? dot_count++ : dot_count;
+            if (dot_count > 1)
+                return false;
             return std::isdigit(static_cast<unsigned char>(chr)) || chr == '.';
         };
 
