@@ -50,9 +50,9 @@ TEST(LexerDoubleTest, MalformedMultiDotNumberUsesStodPrefix) {
     std::istringstream input("1.23.45");
     klds::lexer        lex(input);
 
-    auto number = lex.get_token();
+    auto number  = lex.get_token();
     auto number2 = lex.get_token();
-    auto eof    = lex.get_token();
+    auto eof     = lex.get_token();
 
     EXPECT_EQ(number.m_tok, klds::lexer::TOK_NUM);
     ASSERT_TRUE(number.m_val.has_value());
