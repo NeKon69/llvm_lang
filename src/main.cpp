@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -27,9 +28,9 @@ foo 12.345 bar # comment time
 
         return 0;
     } catch (const std::exception& ex) {
-        std::cerr << "fatal: " << ex.what() << '\n';
+        std::fprintf(stderr, "fatal: %s\n", ex.what());
     } catch (...) {
-        std::cerr << "fatal: unknown exception\n";
+        std::fputs("fatal: unknown exception\n", stderr);
     }
 
     return 1;

@@ -141,3 +141,4 @@ build_*/
 cmake-build-*/
 test-results/
 .nvim/history.jsonl
+.nvim
